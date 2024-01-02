@@ -4,19 +4,24 @@ from datetime import date, datetime
 
 class Field:
     def __init__(self, value):
-        self._value = None
+        self.__value = None
         self.value = value
 
     @property
     def value(self):
-        return self._value
+        return self.__value
 
     @value.setter
     def value(self, new_value):
-        self._value = new_value
+        if not self.is_valid(new_value):
+            raise ValueError
+        self.__value = new_value
+
+    def is_valid(self, value):
+        return True
 
     def __str__(self):
-        return str(self._value)
+        return str(self.__value)
 
 
 class Name(Field):
@@ -25,17 +30,12 @@ class Name(Field):
 
 class Phone(Field):
     def __init__(self, value):
+        if not self.is_valid_phone_number(value):
+            raise ValueError
         super().__init__(value)
 
-    @property
-    def value(self):
-        return self._value
-
-    @value.setter
-    def value(self, new_value):
-        if not self.is_valid_phone_number(new_value):
-            raise ValueError
-        self._value = new_value
+    def is_valid(self, value):
+        return self.is_valid_phone_number(value)
 
     def is_valid_phone_number(self, value):
         return value.isdigit() and len(value) == 10
@@ -43,18 +43,12 @@ class Phone(Field):
 
 class Birthday(Field):
     def __init__(self, value):
+        if not self.is_valid_birthday(value):
+            raise ValueError
         super().__init__(value)
 
-    @property
-    def value(self):
-        return self._value
-
-    @value.setter
-    def value(self, new_value):
-        if self.is_valid_birthday(new_value):
-            self._value = new_value
-        else:
-            self._value = None
+    def is_valid(self, value):
+        return self.is_valid_birthday(value)
 
     def is_valid_birthday(self, new_birthday):
         if new_birthday is not None:
@@ -109,13 +103,6 @@ class Record:
             days_left = (next_birthday - today).days
             return days_left
         return None
-
-    # def __str__(self):
-    #     str = f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}"
-    #     if self.birthday.value is not None:
-    #         return str + f", birthday: {self.birthday.value}"
-    #     else:
-    #         return str
 
 
 class AddressBook(UserDict):
@@ -177,4 +164,4 @@ book.delete('jane')
 
 print("Address Book")
 for index, record in enumerate(book):
-    print(f"{index} contact = Name: {record.name}; Phones: {', '.join(p.value for p in record.phones)}; Birthday: {record.birthday}")
+    print(f"{index + 1} contact = Name: {record.name}; Phones: {', '.join(p.value for p in record.phones)}; Birthday: {record.birthday}")
